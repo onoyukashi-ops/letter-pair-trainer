@@ -325,22 +325,36 @@ function addNewPair() {
         return;
     }
 
-    // 重複チェック
-    if (letterPairs.some(p => p.hiragana === hiragana)) {
-        alert('このペアは既に存在します');
-        return;
+    // 既存のペアがあるかチェック
+    const existingIndex = letterPairs.findIndex(p => p.hiragana === hiragana);
+    
+    if (existingIndex !== -1) {
+        // 既存のペアを上書き
+        if (confirm(`「${hiragana}」は既に登録されています。\n上書きしますか？\n\n現在: ${letterPairs[existingIndex].image}\n新規: ${image}`)) {
+            letterPairs[existingIndex].image = image;
+            saveData();
+            
+            document.getElementById('hiraganaInput').value = '';
+            document.getElementById('imageInput').value = '';
+            document.getElementById('hiraganaInput').focus();
+            
+            displayPairList();
+            updateAllStats();
+            alert('ペアを上書きしました！');
+        }
+    } else {
+        // 新しいペアを追加
+        letterPairs.push({ hiragana, image });
+        saveData();
+        
+        document.getElementById('hiraganaInput').value = '';
+        document.getElementById('imageInput').value = '';
+        document.getElementById('hiraganaInput').focus();
+        
+        displayPairList();
+        updateAllStats();
+        alert('ペアを追加しました！');
     }
-
-    letterPairs.push({ hiragana, image });
-    saveData();
-    
-    document.getElementById('hiraganaInput').value = '';
-    document.getElementById('imageInput').value = '';
-    document.getElementById('hiraganaInput').focus();
-    
-    displayPairList();
-    updateAllStats();
-    alert('ペアを追加しました！');
 }
 
 function deletePair(hiragana) {
@@ -475,7 +489,11 @@ function importFromGoogleSheet() {
                 const message = `${pairs.length}個のペアをインポートします。\n既存のペアに追加しますか？`;
                 if (confirm(message)) {
                     pairs.forEach(pair => {
-                        if (!letterPairs.some(p => p.hiragana === pair.hiragana)) {
+                        // 既存のペアがあれば上書き、なければ追加
+                        const existingIndex = letterPairs.findIndex(p => p.hiragana === pair.hiragana);
+                        if (existingIndex !== -1) {
+                            letterPairs[existingIndex] = pair;
+                        } else {
                             letterPairs.push(pair);
                         }
                     });
