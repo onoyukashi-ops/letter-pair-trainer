@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レターペア練習ツール</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- ヘッダー -->
+        <header class="header">
+            <h1>レターペア練習ツール</h1>
+            <p class="subtitle">ひらがなペアをイメージで覚える</p>
+        </header>
+
+        <!-- タブナビゲーション -->
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="training">練習</button>
+            <button class="tab-button" data-tab="manage">管理</button>
+            <button class="tab-button" data-tab="stats">統計</button>
+        </nav>
+
+        <!-- 練習タブ -->
+        <section id="training" class="tab-content active">
+            <div class="training-card">
+                <div class="question-container">
+                    <p class="label">問題</p>
+                    <div class="hiragana-display" id="hiraganaDisplay">あ</div>
+                </div>
+
+                <div class="input-container">
+                    <label for="answerInput">イメージ（単語や情景）:</label>
+                    <input 
+                        type="text" 
+                        id="answerInput" 
+                        placeholder="テニス、カキ、など..."
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="button-group">
+                    <button id="submitBtn" class="btn btn-primary">答える</button>
+                    <button id="skipBtn" class="btn btn-secondary">スキップ</button>
+                </div>
+
+                <div id="resultContainer" class="result-container hidden">
+                    <div id="resultMessage" class="result-message"></div>
+                    <p id="correctAnswer" class="correct-answer"></p>
+                    <button id="nextBtn" class="btn btn-primary">次へ</button>
+                </div>
+
+                <div class="stats-mini">
+                    <div class="stat">
+                        <span class="stat-label">正解</span>
+                        <span id="correctCount" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">出題数</span>
+                        <span id="questionCount" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">正答率</span>
+                        <span id="accuracy" class="stat-value">0%</span>
+                    </div>
+                </div>
+
+                <button id="resetBtn" class="btn btn-danger">リセット</button>
+            </div>
+        </section>
+
+        <!-- 管理タブ -->
+        <section id="manage" class="tab-content">
+            <div class="manage-card">
+                <h2>レターペア管理</h2>
+
+                <!-- Google Sheet インポート -->
+                <div class="google-sheet-form">
+                    <h3>📊 Google Sheetからインポート</h3>
+                    <p class="info-text">50音表形式のGoogle Sheetを使用してペアをインポートできます。</p>
+                    <div class="form-group">
+                        <label for="googleSheetUrl">Google Sheet URL:</label>
+                        <input 
+                            type="url" 
+                            id="googleSheetUrl" 
+                            placeholder="https://docs.google.com/spreadsheets/d/..."
+                        >
+                        <small>※ Sheetは「ウェブに公開」または「リンク共有可能」に設定してください</small>
+                    </div>
+                    <button id="importGoogleSheetBtn" class="btn btn-primary">Google Sheetから読み込む</button>
+                    <div id="importProgress" class="hidden progress-container">
+                        <div class="progress-bar"></div>
+                        <p id="progressText">読み込み中...</p>
+                    </div>
+                    <div id="importResult" class="hidden result-box"></div>
+                </div>
+
+                <hr class="divider">
+
+                <!-- 手動追加フォーム -->
+                <div class="add-pair-form">
+                    <h3>✏️ ペアを手動追加</h3>
+                    <div class="form-group">
+                        <label for="hiraganaInput">ひらがナペア (2文字):</label>
+                        <input 
+                            type="text" 
+                            id="hiraganaInput" 
+                            placeholder="例: あか"
+                            maxlength="2"
+                        >
+                    </div>
+                    <div class="form-group">
+                        <label for="imageInput">イメージ:</label>
+                        <input 
+                            type="text" 
+                            id="imageInput" 
+                            placeholder="例: 赤いリンゴ"
+                        >
+                    </div>
+                    <button id="addPairBtn" class="btn btn-primary">追加</button>
+                </div>
+
+                <div class="pair-list-container">
+                    <h3>📋 登録済みペア</h3>
+                    <div id="pairList" class="pair-list"></div>
+                </div>
+
+                <div class="data-actions">
+                    <button id="exportBtn" class="btn btn-secondary">💾 データをエクスポート</button>
+                    <button id="importBtn" class="btn btn-secondary">📂 データをインポート</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                    <button id="resetDataBtn" class="btn btn-danger">🔄 デフォルトにリセット</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- 統計タブ -->
+        <section id="stats" class="tab-content">
+            <div class="stats-card">
+                <h2>📊 学習統計</h2>
+                <div class="stats-grid">
+                    <div class="stats-item">
+                        <p class="stats-label">総出題数</p>
+                        <p id="totalQuestions" class="stats-number">0</p>
+                    </div>
+                    <div class="stats-item">
+                        <p class="stats-label">総正解数</p>
+                        <p id="totalCorrect" class="stats-number">0</p>
+                    </div>
+                    <div class="stats-item">
+                        <p class="stats-label">正答率</p>
+                        <p id="totalAccuracy" class="stats-number">0%</p>
+                    </div>
+                    <div class="stats-item">
+                        <p class="stats-label">登録ペア数</p>
+                        <p id="totalPairs" class="stats-number">0</p>
+                    </div>
+                </div>
+
+                <div class="stats-history">
+                    <h3>📈 最近の履歴</h3>
+                    <div id="historyList" class="history-list"></div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/google-sheet-importer.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
