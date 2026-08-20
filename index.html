@@ -26,15 +26,15 @@
             <div class="training-card">
                 <div class="question-container">
                     <p class="label">問題</p>
-                    <div class="hiragana-display" id="hiraganaDisplay">あ</div>
+                    <div class="hiragana-display" id="hiraganaDisplay">あか</div>
                 </div>
 
                 <div class="input-container">
-                    <label for="answerInput">イメージ（単語や情景）:</label>
+                    <label for="answerInput">イメージを入力してください:</label>
                     <input 
                         type="text" 
                         id="answerInput" 
-                        placeholder="テニス、カキ、など..."
+                        placeholder="例: 赤いリンゴ"
                         autocomplete="off"
                     >
                 </div>
@@ -72,11 +72,11 @@
         <!-- 管理タブ -->
         <section id="manage" class="tab-content">
             <div class="manage-card">
-                <h2>レターペア管理</h2>
+                <h2>📊 レターペア管理</h2>
 
                 <!-- Google Sheet インポート -->
                 <div class="google-sheet-form">
-                    <h3>📊 Google Sheetからインポート</h3>
+                    <h3>📱 Google Sheetからインポート</h3>
                     <p class="info-text">50音表形式のGoogle Sheetを使用してペアをインポートできます。</p>
                     <div class="form-group">
                         <label for="googleSheetUrl">Google Sheet URL:</label>
@@ -85,7 +85,7 @@
                             id="googleSheetUrl" 
                             placeholder="https://docs.google.com/spreadsheets/d/..."
                         >
-                        <small>※ Sheetは「ウェブに公開」または「リンク共有可能」に設定してください</small>
+                        <small>※ Sheetは「リンク共有可能」に設定してください</small>
                     </div>
                     <button id="importGoogleSheetBtn" class="btn btn-primary">Google Sheetから読み込む</button>
                     <div id="importProgress" class="hidden progress-container">
@@ -101,7 +101,7 @@
                 <div class="add-pair-form">
                     <h3>✏️ ペアを手動追加</h3>
                     <div class="form-group">
-                        <label for="hiraganaInput">ひらがナペア (2文字):</label>
+                        <label for="hiraganaInput">ひらがなペア (2文字):</label>
                         <input 
                             type="text" 
                             id="hiraganaInput" 
@@ -126,10 +126,10 @@
                 </div>
 
                 <div class="data-actions">
-                    <button id="exportBtn" class="btn btn-secondary">💾 データをエクスポート</button>
-                    <button id="importBtn" class="btn btn-secondary">📂 データをインポート</button>
+                    <button id="exportBtn" class="btn btn-secondary">💾 エクスポート</button>
+                    <button id="importBtn" class="btn btn-secondary">📂 インポート</button>
                     <input type="file" id="importFile" accept=".json" style="display: none;">
-                    <button id="resetDataBtn" class="btn btn-danger">🔄 デフォルトにリセット</button>
+                    <button id="resetDataBtn" class="btn btn-danger">🔄 リセット</button>
                 </div>
             </div>
         </section>
@@ -137,7 +137,7 @@
         <!-- 統計タブ -->
         <section id="stats" class="tab-content">
             <div class="stats-card">
-                <h2>📊 学習統計</h2>
+                <h2>📈 学習統計</h2>
                 <div class="stats-grid">
                     <div class="stats-item">
                         <p class="stats-label">総出題数</p>
@@ -158,15 +158,14 @@
                 </div>
 
                 <div class="stats-history">
-                    <h3>📈 最近の履歴</h3>
+                    <h3>最近の履歴</h3>
                     <div id="historyList" class="history-list"></div>
                 </div>
             </div>
         </section>
     </div>
 
-    <script src="js/data.js"></script>
-    <script src="js/google-sheet-importer.js"></script>
+    <!-- JavaScript: app.js のみを読み込む -->
     <script src="js/app.js"></script>
 </body>
 </html>
