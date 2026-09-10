@@ -119,7 +119,8 @@ let stats = {
 };
 
 // ==================== 初期化 ====================
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOMContentLoaded fired');
     loadData();
     setupEventListeners();
     newQuestion();
@@ -140,6 +141,7 @@ function loadData() {
     if (savedStats) {
         stats = JSON.parse(savedStats);
     }
+    console.log('Data loaded. Pairs count:', letterPairs.length);
 }
 
 function saveData() {
@@ -149,45 +151,85 @@ function saveData() {
 
 // ==================== イベントリスナー ====================
 function setupEventListeners() {
+    console.log('Setting up event listeners...');
+    
     // タブボタン
-    document.querySelectorAll('.tab-button').forEach(button => {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    console.log('Tab buttons found:', tabButtons.length);
+    tabButtons.forEach(button => {
         button.addEventListener('click', handleTabClick);
     });
 
-    // 練習タブ
-    document.getElementById('hiraganaDisplay').addEventListener('click', revealAnswer);
-    document.getElementById('correctBtn').addEventListener('click', markCorrect);
-    document.getElementById('incorrectBtn').addEventListener('click', markIncorrect);
-    document.getElementById('skipBtn').addEventListener('click', skipQuestion);
-    document.getElementById('resetBtn').addEventListener('click', resetSession);
+    // 練習タブ - ひらがなをクリックで答えを表示
+    const hiraganaDisplay = document.getElementById('hiraganaDisplay');
+    if (hiraganaDisplay) {
+        hiraganaDisplay.addEventListener('click', revealAnswer);
+        console.log('Hiragana display click listener added');
+    }
+
+    // 正解・不正解ボタン
+    const correctBtn = document.getElementById('correctBtn');
+    const incorrectBtn = document.getElementById('incorrectBtn');
+    if (correctBtn) correctBtn.addEventListener('click', markCorrect);
+    if (incorrectBtn) incorrectBtn.addEventListener('click', markIncorrect);
+    console.log('Correct/Incorrect buttons listeners added');
+
+    // スキップボタン
+    const skipBtn = document.getElementById('skipBtn');
+    if (skipBtn) skipBtn.addEventListener('click', skipQuestion);
+    console.log('Skip button listener added');
+
+    // リセットボタン
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) resetBtn.addEventListener('click', resetSession);
+    console.log('Reset button listener added');
 
     // 管理タブ
-    document.getElementById('addPairBtn').addEventListener('click', addNewPair);
-    document.getElementById('exportBtn').addEventListener('click', exportData);
-    document.getElementById('importBtn').addEventListener('click', () => {
-        document.getElementById('importFile').click();
-    });
-    document.getElementById('importFile').addEventListener('change', importData);
-    document.getElementById('resetDataBtn').addEventListener('click', resetToDefault);
-    document.getElementById('importGoogleSheetBtn').addEventListener('click', importFromGoogleSheet);
+    const addPairBtn = document.getElementById('addPairBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const importFile = document.getElementById('importFile');
+    const resetDataBtn = document.getElementById('resetDataBtn');
+    const importGoogleSheetBtn = document.getElementById('importGoogleSheetBtn');
+
+    if (addPairBtn) addPairBtn.addEventListener('click', addNewPair);
+    if (exportBtn) exportBtn.addEventListener('click', exportData);
+    if (importBtn) {
+        importBtn.addEventListener('click', () => {
+            document.getElementById('importFile').click();
+        });
+    }
+    if (importFile) importFile.addEventListener('change', importData);
+    if (resetDataBtn) resetDataBtn.addEventListener('click', resetToDefault);
+    if (importGoogleSheetBtn) importGoogleSheetBtn.addEventListener('click', importFromGoogleSheet);
 
     // 管理タブの入力欄
-    document.getElementById('hiraganaInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            document.getElementById('imageInput').focus();
-        }
-    });
+    const hiraganaInput = document.getElementById('hiraganaInput');
+    const imageInput = document.getElementById('imageInput');
+    
+    if (hiraganaInput) {
+        hiraganaInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                imageInput.focus();
+            }
+        });
+    }
 
-    document.getElementById('imageInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            addNewPair();
-        }
-    });
+    if (imageInput) {
+        imageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addNewPair();
+            }
+        });
+    }
+
+    console.log('All event listeners setup complete');
 }
 
 // ==================== タブ処理 ====================
 function handleTabClick(event) {
     const tabName = event.target.dataset.tab;
+    console.log('Tab clicked:', tabName);
     
     // すべてのタブとコンテンツをリセット
     document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
@@ -207,6 +249,8 @@ function handleTabClick(event) {
 
 // ==================== 練習機能 ====================
 function newQuestion() {
+    console.log('Creating new question...');
+    
     // ペアがない場合はデフォルトをロード
     if (letterPairs.length === 0) {
         letterPairs = JSON.parse(JSON.stringify(DEFAULT_LETTER_PAIRS));
@@ -216,48 +260,73 @@ function newQuestion() {
     currentQuestion = letterPairs[Math.floor(Math.random() * letterPairs.length)];
     answerRevealed = false;
     
+    console.log('Current question:', currentQuestion);
+    
     // UI をリセット
     const hiraganaDisplay = document.getElementById('hiraganaDisplay');
-    hiraganaDisplay.textContent = currentQuestion.hiragana;
-    hiraganaDisplay.classList.remove('revealed');
+    if (hiraganaDisplay) {
+        hiraganaDisplay.textContent = currentQuestion.hiragana;
+        hiraganaDisplay.classList.remove('revealed');
+        hiraganaDisplay.style.cursor = 'pointer';
+    }
     
-    document.getElementById('answerDisplay').textContent = '';
-    document.getElementById('answerDisplay').classList.add('hidden');
+    const answerDisplay = document.getElementById('answerDisplay');
+    if (answerDisplay) {
+        answerDisplay.textContent = '';
+        answerDisplay.classList.add('hidden');
+    }
     
     const buttonGroup = document.getElementById('answerButtonGroup');
-    buttonGroup.classList.add('hidden');
+    if (buttonGroup) {
+        buttonGroup.classList.add('hidden');
+    }
     
     const skipBtn = document.getElementById('skipBtn');
-    skipBtn.classList.remove('hidden');
+    if (skipBtn) {
+        skipBtn.classList.remove('hidden');
+    }
     
     stats.sessionQuestions++;
     updateSessionStats();
 }
 
 function revealAnswer() {
+    console.log('Reveal answer clicked');
+    
     if (answerRevealed) return;
     
     answerRevealed = true;
     
     // ひらがなペアのスタイルを変更
     const hiraganaDisplay = document.getElementById('hiraganaDisplay');
-    hiraganaDisplay.classList.add('revealed');
+    if (hiraganaDisplay) {
+        hiraganaDisplay.classList.add('revealed');
+    }
     
     // 答えを表示
     const answerDisplay = document.getElementById('answerDisplay');
-    answerDisplay.textContent = currentQuestion.image;
-    answerDisplay.classList.remove('hidden');
+    if (answerDisplay) {
+        answerDisplay.textContent = currentQuestion.image;
+        answerDisplay.classList.remove('hidden');
+        console.log('Answer displayed:', currentQuestion.image);
+    }
     
     // ボタングループを表示
     const buttonGroup = document.getElementById('answerButtonGroup');
-    buttonGroup.classList.remove('hidden');
+    if (buttonGroup) {
+        buttonGroup.classList.remove('hidden');
+    }
     
     // スキップボタンを非表示
     const skipBtn = document.getElementById('skipBtn');
-    skipBtn.classList.add('hidden');
+    if (skipBtn) {
+        skipBtn.classList.add('hidden');
+    }
 }
 
 function markCorrect() {
+    console.log('Marked as correct');
+    
     stats.totalCorrect++;
     stats.sessionCorrect++;
     stats.totalQuestions++;
@@ -271,11 +340,12 @@ function markCorrect() {
     saveData();
     updateSessionStats();
     
-    // フィードバック
     showFeedback('✓ 正解！', 'correct');
 }
 
 function markIncorrect() {
+    console.log('Marked as incorrect');
+    
     stats.totalQuestions++;
     stats.history.push({
         hiragana: currentQuestion.hiragana,
@@ -287,11 +357,12 @@ function markIncorrect() {
     saveData();
     updateSessionStats();
     
-    // フィードバック
     showFeedback('✗ 不正解', 'incorrect');
 }
 
 function skipQuestion() {
+    console.log('Question skipped');
+    
     stats.totalQuestions++;
     stats.sessionQuestions++;
     stats.history.push({
@@ -304,21 +375,23 @@ function skipQuestion() {
     saveData();
     updateSessionStats();
     
-    // フィードバック
     showFeedback('スキップしました', 'skip');
 }
 
 function showFeedback(message, type) {
     const feedback = document.getElementById('feedbackMessage');
-    feedback.textContent = message;
-    feedback.className = `feedback-message ${type}`;
-    feedback.classList.remove('hidden');
-    
-    // 1.5秒後に次の問題へ
-    setTimeout(() => {
-        feedback.classList.add('hidden');
-        newQuestion();
-    }, 1500);
+    if (feedback) {
+        feedback.textContent = message;
+        feedback.className = `feedback-message ${type}`;
+        feedback.classList.remove('hidden');
+        console.log('Feedback shown:', message);
+        
+        // 1.5秒後に次の問題へ
+        setTimeout(() => {
+            feedback.classList.add('hidden');
+            newQuestion();
+        }, 1500);
+    }
 }
 
 function resetSession() {
