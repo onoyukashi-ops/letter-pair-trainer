@@ -25,29 +25,23 @@
         <section id="training" class="tab-content active">
             <div class="training-card">
                 <div class="question-container">
-                    <p class="label">問題</p>
+                    <p class="label">ペアをタップして答えを表示</p>
                     <div class="hiragana-display" id="hiraganaDisplay">あか</div>
                 </div>
 
-                <div class="input-container">
-                    <label for="answerInput">イメージを入力してください:</label>
-                    <input 
-                        type="text" 
-                        id="answerInput" 
-                        placeholder="例: 赤いリンゴ"
-                        autocomplete="off"
-                    >
+                <div class="answer-container">
+                    <div id="answerDisplay" class="answer-display hidden"></div>
+                </div>
+
+                <div id="feedbackMessage" class="feedback-message hidden"></div>
+
+                <div id="answerButtonGroup" class="answer-button-group hidden">
+                    <button id="correctBtn" class="btn btn-correct">✓ 正解</button>
+                    <button id="incorrectBtn" class="btn btn-incorrect">✗ 不正解</button>
                 </div>
 
                 <div class="button-group">
-                    <button id="submitBtn" class="btn btn-primary">答える</button>
                     <button id="skipBtn" class="btn btn-secondary">スキップ</button>
-                </div>
-
-                <div id="resultContainer" class="result-container hidden">
-                    <div id="resultMessage" class="result-message"></div>
-                    <p id="correctAnswer" class="correct-answer"></p>
-                    <button id="nextBtn" class="btn btn-primary">次へ</button>
                 </div>
 
                 <div class="stats-mini">
