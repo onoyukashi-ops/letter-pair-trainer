@@ -109,6 +109,7 @@ const DEFAULT_LETTER_PAIRS = [
 // ==================== グローバル状態 ====================
 let letterPairs = [];
 let currentQuestion = null;
+let answerRevealed = false;
 let stats = {
     totalQuestions: 0,
     totalCorrect: 0,
@@ -131,7 +132,6 @@ function loadData() {
     if (saved) {
         letterPairs = JSON.parse(saved);
     } else {
-        // デフォルトデータを使用
         letterPairs = JSON.parse(JSON.stringify(DEFAULT_LETTER_PAIRS));
         saveData();
     }
@@ -155,9 +155,10 @@ function setupEventListeners() {
     });
 
     // 練習タブ
-    document.getElementById('submitBtn').addEventListener('click', submitAnswer);
+    document.getElementById('hiraganaDisplay').addEventListener('click', revealAnswer);
+    document.getElementById('correctBtn').addEventListener('click', markCorrect);
+    document.getElementById('incorrectBtn').addEventListener('click', markIncorrect);
     document.getElementById('skipBtn').addEventListener('click', skipQuestion);
-    document.getElementById('nextBtn').addEventListener('click', nextQuestion);
     document.getElementById('resetBtn').addEventListener('click', resetSession);
 
     // 管理タブ
@@ -170,17 +171,7 @@ function setupEventListeners() {
     document.getElementById('resetDataBtn').addEventListener('click', resetToDefault);
     document.getElementById('importGoogleSheetBtn').addEventListener('click', importFromGoogleSheet);
 
-    // 入力欄のキーイベント
-    document.getElementById('answerInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
-            if (!document.getElementById('resultContainer').classList.contains('hidden')) {
-                nextQuestion();
-            } else {
-                submitAnswer();
-            }
-        }
-    });
-
+    // 管理タブの入力欄
     document.getElementById('hiraganaInput').addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
             document.getElementById('imageInput').focus();
@@ -223,53 +214,81 @@ function newQuestion() {
     }
 
     currentQuestion = letterPairs[Math.floor(Math.random() * letterPairs.length)];
-    document.getElementById('hiraganaDisplay').textContent = currentQuestion.hiragana;
-    document.getElementById('answerInput').value = '';
-    document.getElementById('resultContainer').classList.add('hidden');
-    document.getElementById('correctAnswer').textContent = '';
-    document.getElementById('answerInput').focus();
+    answerRevealed = false;
+    
+    // UI をリセット
+    const hiraganaDisplay = document.getElementById('hiraganaDisplay');
+    hiraganaDisplay.textContent = currentQuestion.hiragana;
+    hiraganaDisplay.classList.remove('revealed');
+    
+    document.getElementById('answerDisplay').textContent = '';
+    document.getElementById('answerDisplay').classList.add('hidden');
+    
+    const buttonGroup = document.getElementById('answerButtonGroup');
+    buttonGroup.classList.add('hidden');
+    
+    const skipBtn = document.getElementById('skipBtn');
+    skipBtn.classList.remove('hidden');
     
     stats.sessionQuestions++;
     updateSessionStats();
 }
 
-function submitAnswer() {
-    const userAnswer = document.getElementById('answerInput').value.trim();
+function revealAnswer() {
+    if (answerRevealed) return;
     
-    if (!userAnswer) {
-        alert('答えを入力してください');
-        return;
-    }
+    answerRevealed = true;
+    
+    // ひらがなペアのスタイルを変更
+    const hiraganaDisplay = document.getElementById('hiraganaDisplay');
+    hiraganaDisplay.classList.add('revealed');
+    
+    // 答えを表示
+    const answerDisplay = document.getElementById('answerDisplay');
+    answerDisplay.textContent = currentQuestion.image;
+    answerDisplay.classList.remove('hidden');
+    
+    // ボタングループを表示
+    const buttonGroup = document.getElementById('answerButtonGroup');
+    buttonGroup.classList.remove('hidden');
+    
+    // スキップボタンを非表示
+    const skipBtn = document.getElementById('skipBtn');
+    skipBtn.classList.add('hidden');
+}
 
-    const resultContainer = document.getElementById('resultContainer');
-    const resultMessage = document.getElementById('resultMessage');
-    const correctAnswer = document.getElementById('correctAnswer');
-    
-    // 完全一致チェック
-    const isCorrect = userAnswer === currentQuestion.image;
-    
-    if (isCorrect) {
-        resultMessage.textContent = '✓ 正解！';
-        resultMessage.className = 'result-message correct';
-        stats.totalCorrect++;
-        stats.sessionCorrect++;
-    } else {
-        resultMessage.textContent = '✗ 不正解';
-        resultMessage.className = 'result-message incorrect';
-        correctAnswer.textContent = `正解: ${currentQuestion.image}`;
-    }
-
+function markCorrect() {
+    stats.totalCorrect++;
+    stats.sessionCorrect++;
     stats.totalQuestions++;
     stats.history.push({
         hiragana: currentQuestion.hiragana,
-        answer: userAnswer,
-        correct: isCorrect,
+        image: currentQuestion.image,
+        correct: true,
         timestamp: new Date().getTime()
     });
-
-    resultContainer.classList.remove('hidden');
+    
     saveData();
     updateSessionStats();
+    
+    // フィードバック
+    showFeedback('✓ 正解！', 'correct');
+}
+
+function markIncorrect() {
+    stats.totalQuestions++;
+    stats.history.push({
+        hiragana: currentQuestion.hiragana,
+        image: currentQuestion.image,
+        correct: false,
+        timestamp: new Date().getTime()
+    });
+    
+    saveData();
+    updateSessionStats();
+    
+    // フィードバック
+    showFeedback('✗ 不正解', 'incorrect');
 }
 
 function skipQuestion() {
@@ -277,17 +296,29 @@ function skipQuestion() {
     stats.sessionQuestions++;
     stats.history.push({
         hiragana: currentQuestion.hiragana,
-        answer: 'スキップ',
+        image: currentQuestion.image,
         correct: false,
         timestamp: new Date().getTime()
     });
+    
     saveData();
     updateSessionStats();
-    nextQuestion();
+    
+    // フィードバック
+    showFeedback('スキップしました', 'skip');
 }
 
-function nextQuestion() {
-    newQuestion();
+function showFeedback(message, type) {
+    const feedback = document.getElementById('feedbackMessage');
+    feedback.textContent = message;
+    feedback.className = `feedback-message ${type}`;
+    feedback.classList.remove('hidden');
+    
+    // 1.5秒後に次の問題へ
+    setTimeout(() => {
+        feedback.classList.add('hidden');
+        newQuestion();
+    }, 1500);
 }
 
 function resetSession() {
@@ -520,24 +551,25 @@ function parseGoogleSheetData(csvData) {
 
     if (lines.length < 2) return pairs;
 
-    // ヘッダー行を解析
+    // ヘッダー行を解析（列のひらがな）
     const headerLine = lines[0].split(',');
-    const firstCharList = headerLine.slice(1).map(cell => cell.trim()).filter(cell => cell);
+    const columnCharList = headerLine.slice(1).map(cell => cell.trim()).filter(cell => cell);
 
-    // データ行を解析
+    // データ行を解析（行のひらがな）
     for (let i = 1; i < lines.length; i++) {
         const cells = lines[i].split(',');
-        const secondChar = cells[0].trim();
+        const rowChar = cells[0].trim();
 
-        if (!hiraganaList.includes(secondChar)) continue;
+        if (!hiraganaList.includes(rowChar)) continue;
 
         for (let j = 1; j < cells.length; j++) {
             const image = cells[j].trim();
-            const firstChar = firstCharList[j - 1];
+            const colChar = columnCharList[j - 1];
 
-            if (!firstChar || !hiraganaList.includes(firstChar) || !image) continue;
+            if (!colChar || !hiraganaList.includes(colChar) || !image) continue;
 
-            const hiragana = firstChar + secondChar;
+            // 行（1文字目） + 列（2文字目）
+            const hiragana = rowChar + colChar;
             if (!pairs.some(p => p.hiragana === hiragana)) {
                 pairs.push({ hiragana, image });
             }
@@ -594,7 +626,7 @@ function displayHistory() {
         .map(item => `
             <div class="history-item ${item.correct ? 'correct' : 'incorrect'}">
                 <strong>${item.hiragana}</strong> - 
-                ${item.correct ? '✓ 正解' : ('✗ 「' + item.answer + '」は不正解')}
+                ${item.correct ? '✓ 正解' : ('✗ 不正解：' + item.image)}
             </div>
         `)
         .join('');
