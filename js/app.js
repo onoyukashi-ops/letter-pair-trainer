@@ -684,6 +684,7 @@ function displayStats() {
     document.getElementById('totalPairs').textContent = letterPairs.length;
     
     displayHistory();
+    displayIncorrectRanking();
 }
 
 function displayHistory() {
@@ -702,6 +703,49 @@ function displayHistory() {
                 ${item.correct ? '✓ 正解' : ('✗ 不正解：' + item.image)}
             </div>
         `)
+        .join('');
+}
+
+function displayIncorrectRanking() {
+    // 不正解の数を集計
+    const incorrectCount = {};
+    
+    stats.history.forEach(item => {
+        if (!item.correct) {
+            incorrectCount[item.hiragana] = (incorrectCount[item.hiragana] || 0) + 1;
+        }
+    });
+    
+    // ソートして1位から20位まで取得
+    const ranking = Object.entries(incorrectCount)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 20);
+    
+    const rankingList = document.getElementById('incorrectRankingList');
+    
+    if (ranking.length === 0) {
+        rankingList.innerHTML = '<div class="empty-message">不正解がありません</div>';
+        return;
+    }
+    
+    rankingList.innerHTML = ranking
+        .map((item, index) => {
+            const hiragana = item[0];
+            const count = item[1];
+            const pairInfo = letterPairs.find(p => p.hiragana === hiragana);
+            const image = pairInfo ? pairInfo.image : '(登録されていません)';
+            
+            return `
+                <div class="ranking-item">
+                    <div class="ranking-badge">${index + 1}</div>
+                    <div class="ranking-info">
+                        <div class="ranking-hiragana">${hiragana}</div>
+                        <div class="ranking-image">${image}</div>
+                    </div>
+                    <div class="ranking-count">${count}回</div>
+                </div>
+            `;
+        })
         .join('');
 }
 
